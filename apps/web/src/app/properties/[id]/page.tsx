@@ -29,17 +29,27 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
 
   async function handleGenerate() {
     setGenerating(true);
-    await fetch(`/api/properties/${propertyId}/generate`, {
-      method: 'POST',
-      body: JSON.stringify({ landscape }),
-    });
-    setGenerating(false);
+    try {
+      const response = await fetch(`/api/properties/${propertyId}/generate`, {
+        method: 'POST',
+        body: JSON.stringify({ landscape }),
+      });
+      if (!response.ok) {
+        console.error('Generate request failed', response.status);
+      }
+    } catch (error) {
+      console.error('Generate request failed', error);
+    } finally {
+      setGenerating(false);
+    }
   }
+
+  const nextDisplayOrder = Math.max(-1, ...images.map((i) => i.display_order)) + 1;
 
   return (
     <main>
       <h1>Property photos</h1>
-      <ImageUploader propertyId={propertyId} nextDisplayOrder={images.length} onUploaded={loadImages} />
+      <ImageUploader propertyId={propertyId} nextDisplayOrder={nextDisplayOrder} onUploaded={loadImages} />
       <ImageList images={images} onChanged={loadImages} />
       <RuntimeEstimate numPhotos={images.length} />
       <label>

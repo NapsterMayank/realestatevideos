@@ -17,13 +17,19 @@ export function ImageList({
 
   async function updateRoomType(id: string, roomType: string) {
     const supabase = getSupabaseBrowserClient();
-    await supabase.from('property_images').update({ room_type: roomType }).eq('id', id);
+    const { error } = await supabase.from('property_images').update({ room_type: roomType }).eq('id', id);
+    if (error) {
+      console.error('Failed to update room type', error);
+    }
     onChanged();
   }
 
   async function deleteImage(id: string) {
     const supabase = getSupabaseBrowserClient();
-    await supabase.from('property_images').delete().eq('id', id);
+    const { error } = await supabase.from('property_images').delete().eq('id', id);
+    if (error) {
+      console.error('Failed to delete image', error);
+    }
     onChanged();
   }
 
@@ -38,11 +44,16 @@ export function ImageList({
     reordered.splice(toIndex, 0, moved);
 
     const supabase = getSupabaseBrowserClient();
-    await Promise.all(
+    const results = await Promise.all(
       reordered.map((img, index) =>
         supabase.from('property_images').update({ display_order: index }).eq('id', img.id)
       )
     );
+    for (const { error } of results) {
+      if (error) {
+        console.error('Failed to reorder image', error);
+      }
+    }
     onChanged();
   }
 
