@@ -8,8 +8,8 @@ const DIMENSIONS: Record<VideoVariant, { width: number; height: number }> = {
   landscape: { width: 1920, height: 1080 },
 };
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const propertyId = params.id;
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id: propertyId } = await params;
   const body = await request.json().catch(() => ({}));
   const wantsLandscape = Boolean(body.landscape);
 

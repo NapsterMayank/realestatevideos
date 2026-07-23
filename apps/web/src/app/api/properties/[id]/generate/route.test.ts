@@ -42,7 +42,7 @@ describe('POST /api/properties/:id/generate', () => {
       body: JSON.stringify({ landscape: false }),
     });
 
-    const res = await POST(req, { params: { id: 'p1' } });
+    const res = await POST(req, { params: Promise.resolve({ id: 'p1' }) });
     const body = await res.json();
 
     expect(mockInsert).toHaveBeenCalledTimes(1);
@@ -59,7 +59,7 @@ describe('POST /api/properties/:id/generate', () => {
       body: JSON.stringify({ landscape: true }),
     });
 
-    await POST(req, { params: { id: 'p1' } });
+    await POST(req, { params: Promise.resolve({ id: 'p1' }) });
 
     expect(mockInsert).toHaveBeenCalledTimes(2);
     expect(mockEnqueue).toHaveBeenCalledTimes(2);
@@ -73,7 +73,7 @@ describe('POST /api/properties/:id/generate', () => {
       body: JSON.stringify({ landscape: false }),
     });
 
-    const res = await POST(req, { params: { id: 'p1' } });
+    const res = await POST(req, { params: Promise.resolve({ id: 'p1' }) });
 
     expect(res.status).toBe(400);
     expect(mockEnqueue).not.toHaveBeenCalled();
