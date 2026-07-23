@@ -543,7 +543,7 @@ git commit -m "feat(shared): add zoom alternation and caption formatting"
     "@realestatevids/shared": "*",
     "@supabase/supabase-js": "^2.45.4",
     "bullmq": "^5.13.2",
-    "editly": "^0.16.0",
+    "editly": "^0.14.2",
     "ioredis": "^5.4.1"
   }
 }
