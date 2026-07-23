@@ -6,6 +6,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabaseBrowser';
 import { ImageUploader } from '@/components/ImageUploader';
 import { ImageList } from '@/components/ImageList';
 import { RuntimeEstimate } from '@/components/RuntimeEstimate';
+import { VideoStatusList } from '@/components/VideoStatusList';
 
 export default function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: propertyId } = use(params);
@@ -59,6 +60,7 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
       <button disabled={generating || images.length === 0} onClick={handleGenerate}>
         Generate Video
       </button>
+      <VideoStatusList propertyId={propertyId} />
     </main>
   );
 }
