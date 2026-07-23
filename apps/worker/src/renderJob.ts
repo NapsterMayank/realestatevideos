@@ -26,12 +26,12 @@ export async function renderJob(payload: RenderJobPayload, deps: RenderJobDeps):
     const property = await deps.fetchProperty(propertyId);
     const images = await deps.fetchOrderedImages(propertyId);
 
-    const imagePaths = images.map((_, index) => path.posix.join(tempDir, `image-${index}.jpg`));
+    const imagePaths = images.map((_, index) => path.join(tempDir, `image-${index}.jpg`));
     for (let i = 0; i < images.length; i++) {
       await deps.downloadImage(images[i].image_url, imagePaths[i]);
     }
 
-    const outPath = path.posix.join(tempDir, 'output.mp4');
+    const outPath = path.join(tempDir, 'output.mp4');
     const config = buildEditlyConfig({ outPath, width, height, images, imagePaths, property });
 
     await deps.runEditly(config);

@@ -1,6 +1,9 @@
+import path from 'node:path';
 import { describe, it, expect, vi } from 'vitest';
 import { renderJob, type RenderJobDeps } from './renderJob';
 import type { Property, PropertyImage, RenderJobPayload } from '@realestatevids/shared';
+
+const TEMP_DIR = '/tmp/render-v1';
 
 const property: Property = {
   id: 'p1',
@@ -38,7 +41,7 @@ function makeDeps(overrides: Partial<RenderJobDeps> = {}): RenderJobDeps {
     runEditly: vi.fn().mockResolvedValue(undefined),
     uploadVideo: vi.fn().mockResolvedValue('property-videos/p1/v1.mp4'),
     updateVideoStatus: vi.fn().mockResolvedValue(undefined),
-    makeTempDir: vi.fn().mockResolvedValue('/tmp/render-v1'),
+    makeTempDir: vi.fn().mockResolvedValue(TEMP_DIR),
     removeTempDir: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
@@ -51,15 +54,15 @@ describe('renderJob', () => {
     await renderJob(payload, deps);
 
     expect(deps.updateVideoStatus).toHaveBeenNthCalledWith(1, 'v1', { status: 'processing' });
-    expect(deps.downloadImage).toHaveBeenCalledWith('storage/img1.jpg', expect.stringContaining('/tmp/render-v1'));
+    expect(deps.downloadImage).toHaveBeenCalledWith('storage/img1.jpg', path.join(TEMP_DIR, 'image-0.jpg'));
     expect(deps.runEditly).toHaveBeenCalledOnce();
-    expect(deps.uploadVideo).toHaveBeenCalledWith(expect.stringContaining('/tmp/render-v1'), 'v1');
+    expect(deps.uploadVideo).toHaveBeenCalledWith(path.join(TEMP_DIR, 'output.mp4'), 'v1');
     expect(deps.updateVideoStatus).toHaveBeenNthCalledWith(2, 'v1', {
       status: 'done',
       output_url: 'property-videos/p1/v1.mp4',
       completed_at: expect.any(String),
     });
-    expect(deps.removeTempDir).toHaveBeenCalledWith('/tmp/render-v1');
+    expect(deps.removeTempDir).toHaveBeenCalledWith(TEMP_DIR);
   });
 
   it('marks failed with error message and still cleans up temp dir on render error', async () => {
@@ -73,6 +76,6 @@ describe('renderJob', () => {
       status: 'failed',
       error_message: 'ffmpeg exploded',
     });
-    expect(deps.removeTempDir).toHaveBeenCalledWith('/tmp/render-v1');
+    expect(deps.removeTempDir).toHaveBeenCalledWith(TEMP_DIR);
   });
 });
