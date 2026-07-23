@@ -1357,7 +1357,7 @@ describe('POST /api/properties/:id/generate', () => {
       body: JSON.stringify({ landscape: false }),
     });
 
-    const res = await POST(req, { params: { id: 'p1' } });
+    const res = await POST(req, { params: Promise.resolve({ id: 'p1' }) });
     const body = await res.json();
 
     expect(mockInsert).toHaveBeenCalledTimes(1);
@@ -1374,7 +1374,7 @@ describe('POST /api/properties/:id/generate', () => {
       body: JSON.stringify({ landscape: true }),
     });
 
-    await POST(req, { params: { id: 'p1' } });
+    await POST(req, { params: Promise.resolve({ id: 'p1' }) });
 
     expect(mockInsert).toHaveBeenCalledTimes(2);
     expect(mockEnqueue).toHaveBeenCalledTimes(2);
@@ -1388,7 +1388,7 @@ describe('POST /api/properties/:id/generate', () => {
       body: JSON.stringify({ landscape: false }),
     });
 
-    const res = await POST(req, { params: { id: 'p1' } });
+    const res = await POST(req, { params: Promise.resolve({ id: 'p1' }) });
 
     expect(res.status).toBe(400);
     expect(mockEnqueue).not.toHaveBeenCalled();
@@ -1669,14 +1669,15 @@ export function ImageList({
 ```tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { use, useCallback, useEffect, useState } from 'react';
 import type { PropertyImage } from '@realestatevids/shared';
 import { getSupabaseBrowserClient } from '@/lib/supabaseBrowser';
 import { ImageUploader } from '@/components/ImageUploader';
 import { ImageList } from '@/components/ImageList';
 import { RuntimeEstimate } from '@/components/RuntimeEstimate';
 
-export default function PropertyPage({ params }: { params: { id: string } }) {
+export default function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: propertyId } = use(params);
   const [images, setImages] = useState<PropertyImage[]>([]);
   const [landscape, setLandscape] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -1686,10 +1687,10 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
     const { data } = await supabase
       .from('property_images')
       .select('*')
-      .eq('property_id', params.id)
+      .eq('property_id', propertyId)
       .order('display_order', { ascending: true });
     setImages(data ?? []);
-  }, [params.id]);
+  }, [propertyId]);
 
   useEffect(() => {
     loadImages();
@@ -1697,7 +1698,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
 
   async function handleGenerate() {
     setGenerating(true);
-    await fetch(`/api/properties/${params.id}/generate`, {
+    await fetch(`/api/properties/${propertyId}/generate`, {
       method: 'POST',
       body: JSON.stringify({ landscape }),
     });
@@ -1707,7 +1708,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
   return (
     <main>
       <h1>Property photos</h1>
-      <ImageUploader propertyId={params.id} nextDisplayOrder={images.length} onUploaded={loadImages} />
+      <ImageUploader propertyId={propertyId} nextDisplayOrder={images.length} onUploaded={loadImages} />
       <ImageList images={images} onChanged={loadImages} />
       <RuntimeEstimate numPhotos={images.length} />
       <label>
@@ -1840,13 +1841,14 @@ list's automated tests (it is a thin proxy) — add it now as a small supporting
 import { NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabaseServer';
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = getSupabaseServerClient();
 
   const { data: video, error } = await supabase
     .from('property_videos')
     .select('output_url')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !video?.output_url) {
@@ -1876,7 +1878,7 @@ import { VideoStatusList } from '@/components/VideoStatusList';
       <button disabled={generating || images.length === 0} onClick={handleGenerate}>
         Generate Video
       </button>
-      <VideoStatusList propertyId={params.id} />
+      <VideoStatusList propertyId={propertyId} />
 ```
 
 - [ ] **Step 3: Manual end-to-end check**
