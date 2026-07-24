@@ -2,9 +2,9 @@ import { Worker } from 'bullmq';
 import type { RenderJobPayload } from '@realestatevids/shared';
 import { RENDER_QUEUE_NAME, getRedisConnection } from './queue';
 import { renderJob } from './renderJob';
-import { buildSupabaseDeps } from './supabaseDeps';
+import { buildDbDeps } from './dbDeps';
 
-const deps = buildSupabaseDeps();
+const deps = buildDbDeps();
 
 const worker = new Worker<RenderJobPayload>(
   RENDER_QUEUE_NAME,
