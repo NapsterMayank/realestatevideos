@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { RenderJobPayload, VideoVariant } from '@realestatevids/shared';
+import type { PropertyVideo, RenderJobPayload, VideoVariant } from '@realestatevids/shared';
 import { getDb } from '@/lib/db';
 import { enqueueRenderJob } from '@/lib/renderQueue';
 
@@ -7,6 +7,28 @@ const DIMENSIONS: Record<VideoVariant, { width: number; height: number }> = {
   vertical: { width: 1080, height: 1920 },
   landscape: { width: 1920, height: 1080 },
 };
+
+function mapVideo(video: {
+  id: string;
+  propertyId: string;
+  variant: string;
+  status: string;
+  outputUrl: string | null;
+  errorMessage: string | null;
+  createdAt: Date;
+  completedAt: Date | null;
+}): PropertyVideo {
+  return {
+    id: video.id,
+    property_id: video.propertyId,
+    variant: video.variant as PropertyVideo['variant'],
+    status: video.status as PropertyVideo['status'],
+    output_url: video.outputUrl,
+    error_message: video.errorMessage,
+    created_at: video.createdAt.toISOString(),
+    completed_at: video.completedAt ? video.completedAt.toISOString() : null,
+  };
+}
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: propertyId } = await params;
@@ -61,5 +83,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     await enqueueRenderJob(payload);
   }
 
-  return NextResponse.json({ videos });
+  return NextResponse.json({ videos: videos.map(mapVideo) });
 }

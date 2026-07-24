@@ -29,6 +29,10 @@ describe('POST /api/properties/:id/generate', () => {
       propertyId: data.propertyId,
       variant: data.variant,
       status: data.status,
+      outputUrl: null,
+      errorMessage: null,
+      createdAt: new Date('2026-01-02T00:00:00.000Z'),
+      completedAt: null,
     }));
   });
 
@@ -67,6 +71,10 @@ describe('POST /api/properties/:id/generate', () => {
       propertyId: data.propertyId,
       variant: data.variant,
       status: data.status,
+      outputUrl: null,
+      errorMessage: null,
+      createdAt: new Date('2026-01-02T00:00:00.000Z'),
+      completedAt: null,
     }));
 
     const req = new Request('http://localhost/api/properties/p1/generate', {
