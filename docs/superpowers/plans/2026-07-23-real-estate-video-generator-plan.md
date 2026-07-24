@@ -1920,9 +1920,21 @@ git commit -m "feat(web): show per-variant render status with preview, download,
      15 DLLs `canvas`'s postbuild copy step expects by their old GTK-bundle names. A
      `pkg-config.exe` (vcpkg's `pkgconf` + `libpkgconf-7.dll`) on `PATH` with
      `PKG_CONFIG_PATH` pointing at vcpkg's `lib/pkgconfig` is also needed for the
-     `gyp` configure step. Once both are in place, `npm rebuild canvas` succeeds and the
-     worker starts cleanly. This is a one-time machine setup, not part of the repo —
-     Linux/Docker deploy targets get prebuilt `canvas` binaries and skip all of this.
+     `gyp` configure step. Once both are in place, `npm rebuild canvas` succeeds. This is
+     a one-time machine setup, not part of the repo — Linux/Docker deploy targets get
+     prebuilt `canvas` binaries and skip all of this.
+   - **After every `npm install`/`npm rebuild canvas` on Windows**, also run
+     `bash scripts/fix-canvas-windows.sh`. npm wipes `node_modules/canvas/build` on
+     rebuild, which drops the runtime DLLs `canvas.node` needs at load time (harfbuzz,
+     libpng16, etc. — transitive deps of cairo/pango, not covered by canvas's own
+     15-file postbuild copy list). The script copies vcpkg's full runtime DLL set
+     directly next to `canvas.node`, which Windows resolves before checking `PATH` —
+     more reliable than adding vcpkg's `bin` to a shell/user `PATH`, since fresh
+     subprocesses (CI runners, subagents, new terminals) don't reliably inherit a
+     `setx`'d `PATH` change without a full session/process-tree restart. Symptom if
+     skipped: `Error: The specified module could not be found` /
+     `code: 'ERR_DLOPEN_FAILED'` when requiring `canvas`, even though `canvas.node`
+     itself exists and compiled successfully.
 - Editly requires a working ffmpeg on the machine running `apps/worker` (its
   `ffmpeg-static` optional dependency usually covers this, but verify `npx editly --help`
   runs cleanly after `npm install` before relying on Task 8's manual smoke check).
