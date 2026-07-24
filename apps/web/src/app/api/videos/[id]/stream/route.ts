@@ -1,27 +1,33 @@
 import { NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabaseServer';
+import { getDb } from '@/lib/db';
+import { getPresignedDownloadUrl } from '@/lib/storage';
+
+const VIDEOS_BUCKET = process.env.MINIO_VIDEOS_BUCKET ?? 'property-videos';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = getSupabaseServerClient();
+  const db = getDb();
 
-  const { data: video, error } = await supabase
-    .from('property_videos')
-    .select('output_url')
-    .eq('id', id)
-    .single();
-
-  if (error || !video?.output_url) {
+  let video;
+  try {
+    video = await db.propertyVideo.findUniqueOrThrow({ where: { id } });
+  } catch {
     return NextResponse.json({ error: 'Video not found' }, { status: 404 });
   }
 
-  const { data: signed, error: signError } = await supabase.storage
-    .from('property-videos')
-    .createSignedUrl(video.output_url, 60 * 10);
-
-  if (signError || !signed) {
-    return NextResponse.json({ error: signError?.message ?? 'Could not sign url' }, { status: 500 });
+  if (!video.outputUrl) {
+    return NextResponse.json({ error: 'Video not found' }, { status: 404 });
   }
 
-  return NextResponse.redirect(signed.signedUrl);
+  let signedUrl: string;
+  try {
+    signedUrl = await getPresignedDownloadUrl(VIDEOS_BUCKET, video.outputUrl, 60 * 10);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Could not sign url' },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.redirect(signedUrl);
 }
