@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@realestatevids/db';
 import { getDb } from '@/lib/db';
+
+function isRecordNotFoundError(err: unknown): boolean {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025';
+}
 
 export async function PATCH(
   request: Request,
@@ -18,6 +23,9 @@ export async function PATCH(
   try {
     await db.propertyImage.update({ where: { id: imageId }, data: { roomType } });
   } catch (err) {
+    if (isRecordNotFoundError(err)) {
+      return NextResponse.json({ error: 'Image not found' }, { status: 404 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
       { status: 500 }
@@ -37,6 +45,9 @@ export async function DELETE(
   try {
     await db.propertyImage.delete({ where: { id: imageId } });
   } catch (err) {
+    if (isRecordNotFoundError(err)) {
+      return NextResponse.json({ error: 'Image not found' }, { status: 404 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
       { status: 500 }

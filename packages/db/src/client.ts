@@ -10,3 +10,4 @@ export function getPrismaClient(): PrismaClient {
 }
 
 export type { Property, PropertyImage, PropertyVideo } from '@prisma/client';
+export { Prisma } from '@prisma/client';

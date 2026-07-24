@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@realestatevids/db';
 import { getDb } from '@/lib/db';
+
+function isRecordNotFoundError(err: unknown): boolean {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025';
+}
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   await params;
@@ -19,6 +24,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       )
     );
   } catch (err) {
+    if (isRecordNotFoundError(err)) {
+      return NextResponse.json(
+        { error: 'One or more images were deleted before reordering could complete' },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
       { status: 500 }

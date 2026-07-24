@@ -52,7 +52,8 @@ export function ImageList({
       body: JSON.stringify({ orderedIds: reordered.map((img) => img.id) }),
     });
     if (!response.ok) {
-      console.error('Failed to reorder images', response.status);
+      const body = await response.json().catch(() => ({}));
+      console.error('Failed to reorder images', response.status, body.error);
     }
     onChanged();
   }

@@ -25,15 +25,23 @@ export function ImageUploader({
           console.error('Failed to create image record', createResponse.status);
           continue;
         }
-        const { uploadUrl } = await createResponse.json();
+        const { uploadUrl, imageId } = await createResponse.json();
 
-        const uploadResponse = await fetch(uploadUrl, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type },
-        });
-        if (!uploadResponse.ok) {
-          console.error('Upload failed', uploadResponse.status);
+        try {
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type },
+          });
+          if (!uploadResponse.ok) {
+            console.error('Upload failed', uploadResponse.status);
+            await fetch(`/api/properties/${propertyId}/images/${imageId}`, { method: 'DELETE' });
+            continue;
+          }
+        } catch (uploadError) {
+          console.error('Upload failed', uploadError);
+          await fetch(`/api/properties/${propertyId}/images/${imageId}`, { method: 'DELETE' });
+          continue;
         }
       } catch (error) {
         console.error('Upload failed', error);

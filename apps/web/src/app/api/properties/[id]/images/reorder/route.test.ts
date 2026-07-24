@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Prisma } from '@realestatevids/db';
 
 const { mockTransaction, mockUpdate } = vi.hoisted(() => {
   const mockTransaction = vi.fn();
@@ -14,6 +15,13 @@ vi.mock('@/lib/db', () => ({
 }));
 
 import { PATCH } from './route';
+
+function notFoundError() {
+  return new Prisma.PrismaClientKnownRequestError('Record to update not found.', {
+    code: 'P2025',
+    clientVersion: '5.19.1',
+  });
+}
 
 describe('PATCH /api/properties/:id/images/reorder', () => {
   beforeEach(() => {
@@ -49,5 +57,20 @@ describe('PATCH /api/properties/:id/images/reorder', () => {
 
     expect(res.status).toBe(400);
     expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
+  it('returns 409 when an image was deleted concurrently before reordering completed', async () => {
+    mockTransaction.mockRejectedValue(notFoundError());
+
+    const req = new Request('http://localhost/api/properties/p1/images/reorder', {
+      method: 'PATCH',
+      body: JSON.stringify({ orderedIds: ['img-a', 'img-b'] }),
+    });
+
+    const res = await PATCH(req, { params: Promise.resolve({ id: 'p1' }) });
+    const body = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(body.error).toBeTruthy();
   });
 });

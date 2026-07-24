@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Prisma } from '@realestatevids/db';
 
 const { mockUpdate, mockDelete } = vi.hoisted(() => {
   const mockUpdate = vi.fn();
@@ -13,6 +14,13 @@ vi.mock('@/lib/db', () => ({
 }));
 
 import { PATCH, DELETE } from './route';
+
+function notFoundError() {
+  return new Prisma.PrismaClientKnownRequestError('Record to update not found.', {
+    code: 'P2025',
+    clientVersion: '5.19.1',
+  });
+}
 
 describe('PATCH /api/properties/:id/images/:imageId', () => {
   beforeEach(() => {
@@ -45,6 +53,21 @@ describe('PATCH /api/properties/:id/images/:imageId', () => {
     expect(res.status).toBe(400);
     expect(mockUpdate).not.toHaveBeenCalled();
   });
+
+  it('returns 404 when the image does not exist', async () => {
+    mockUpdate.mockRejectedValue(notFoundError());
+
+    const req = new Request('http://localhost/api/properties/p1/images/missing', {
+      method: 'PATCH',
+      body: JSON.stringify({ roomType: 'kitchen' }),
+    });
+
+    const res = await PATCH(req, { params: Promise.resolve({ id: 'p1', imageId: 'missing' }) });
+    const body = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(body.error).toBeTruthy();
+  });
 });
 
 describe('DELETE /api/properties/:id/images/:imageId', () => {
@@ -61,5 +84,16 @@ describe('DELETE /api/properties/:id/images/:imageId', () => {
 
     expect(mockDelete).toHaveBeenCalledWith({ where: { id: 'img-1' } });
     expect(body.ok).toBe(true);
+  });
+
+  it('returns 404 when the image does not exist', async () => {
+    mockDelete.mockRejectedValue(notFoundError());
+
+    const req = new Request('http://localhost/api/properties/p1/images/missing', { method: 'DELETE' });
+    const res = await DELETE(req, { params: Promise.resolve({ id: 'p1', imageId: 'missing' }) });
+    const body = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(body.error).toBeTruthy();
   });
 });
