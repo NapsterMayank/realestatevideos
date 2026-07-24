@@ -11,6 +11,7 @@ const DIMENSIONS: Record<VideoVariant, { width: number; height: number }> = {
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: propertyId } = await params;
   const body = await request.json().catch(() => ({}));
+  const requestedVariant = body.variant as VideoVariant | undefined;
   const wantsLandscape = Boolean(body.landscape);
 
   const supabase = getSupabaseServerClient();
@@ -27,7 +28,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Property has no images to render' }, { status: 400 });
   }
 
-  const variants: VideoVariant[] = wantsLandscape ? ['vertical', 'landscape'] : ['vertical'];
+  const variants: VideoVariant[] =
+    requestedVariant === 'vertical' || requestedVariant === 'landscape'
+      ? [requestedVariant]
+      : wantsLandscape
+        ? ['vertical', 'landscape']
+        : ['vertical'];
   const videos = [];
 
   for (const variant of variants) {

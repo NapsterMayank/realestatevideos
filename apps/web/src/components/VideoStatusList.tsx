@@ -41,7 +41,7 @@ export function VideoStatusList({ propertyId }: { propertyId: string }) {
   async function retry(video: PropertyVideo) {
     await fetch(`/api/properties/${propertyId}/generate`, {
       method: 'POST',
-      body: JSON.stringify({ landscape: video.variant === 'landscape' }),
+      body: JSON.stringify({ variant: video.variant }),
     });
   }
 
