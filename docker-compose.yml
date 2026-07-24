@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: localdev
       POSTGRES_DB: realestatevids
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
   minio:
