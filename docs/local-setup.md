@@ -21,14 +21,34 @@ MinIO (S3-compatible object storage), and Redis, all managed through Docker Comp
    docker compose up -d
    ```
 
-2. **Apply the database schema** from `packages/db`:
+   MinIO's `property-photos` and `property-videos` buckets are created
+   automatically by the `minio-init` one-shot service defined in
+   `docker-compose.yml` — no manual bucket creation step needed.
+
+2. **Copy the env example files** and adjust as needed (the defaults already match
+   the `docker-compose.yml` service ports/credentials):
+
+   ```
+   cp .env.example .env
+   cp apps/web/.env.local.example apps/web/.env.local
+   cp apps/worker/.env.example apps/worker/.env
+   cp packages/db/.env.example packages/db/.env
+   ```
+
+   The `packages/db/.env` copy is required even though `packages/db/.env` looks
+   redundant with the root `.env` — Prisma's `dotenv` loading is cwd-relative, so
+   running `npx prisma` commands from inside `packages/db` only picks up a `.env`
+   in that directory.
+
+3. **Apply the database schema and generate the Prisma client**, from `packages/db`:
 
    ```
    cd packages/db
    npx prisma migrate deploy
+   npx prisma generate
    ```
 
-3. **(Windows only, if `canvas` was just rebuilt)** restore the runtime DLLs
+4. **(Windows only, if `canvas` was just rebuilt)** restore the runtime DLLs
    `apps/worker`'s `canvas` module needs at load time:
 
    ```
@@ -38,15 +58,6 @@ MinIO (S3-compatible object storage), and Redis, all managed through Docker Comp
    Skip this step unless you just ran `npm install` or `npm rebuild canvas` on
    Windows — see the Post-plan notes in the original plan doc for why this is
    needed.
-
-4. **Copy the env example files** and adjust as needed (the defaults already match
-   the `docker-compose.yml` service ports/credentials):
-
-   ```
-   cp .env.example .env
-   cp apps/web/.env.local.example apps/web/.env.local
-   cp apps/worker/.env.example apps/worker/.env
-   ```
 
 5. **Start the apps**, each in its own terminal:
 
