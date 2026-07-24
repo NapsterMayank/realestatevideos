@@ -2,38 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import type { PropertyVideo } from '@realestatevids/shared';
-import { getSupabaseBrowserClient } from '@/lib/supabaseBrowser';
 
 export function VideoStatusList({ propertyId }: { propertyId: string }) {
   const [videos, setVideos] = useState<PropertyVideo[]>([]);
 
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-
     async function load() {
-      const { data } = await supabase
-        .from('property_videos')
-        .select('*')
-        .eq('property_id', propertyId)
-        .order('created_at', { ascending: false });
-      setVideos(data ?? []);
+      const response = await fetch(`/api/properties/${propertyId}/videos`);
+      if (!response.ok) {
+        console.error('Failed to load videos', response.status);
+        return;
+      }
+      const { videos } = await response.json();
+      setVideos(videos ?? []);
     }
 
     load();
 
-    const channel = supabase
-      .channel(`property_videos:${propertyId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'property_videos', filter: `property_id=eq.${propertyId}` },
-        load
-      )
-      .subscribe();
-
     const pollId = setInterval(load, 3000);
 
     return () => {
-      supabase.removeChannel(channel);
       clearInterval(pollId);
     };
   }, [propertyId]);

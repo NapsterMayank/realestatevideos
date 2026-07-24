@@ -2,7 +2,6 @@
 
 import { use, useCallback, useEffect, useState } from 'react';
 import type { PropertyImage } from '@realestatevids/shared';
-import { getSupabaseBrowserClient } from '@/lib/supabaseBrowser';
 import { ImageUploader } from '@/components/ImageUploader';
 import { ImageList } from '@/components/ImageList';
 import { RuntimeEstimate } from '@/components/RuntimeEstimate';
@@ -15,13 +14,13 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
   const [generating, setGenerating] = useState(false);
 
   const loadImages = useCallback(async () => {
-    const supabase = getSupabaseBrowserClient();
-    const { data } = await supabase
-      .from('property_images')
-      .select('*')
-      .eq('property_id', propertyId)
-      .order('display_order', { ascending: true });
-    setImages(data ?? []);
+    const response = await fetch(`/api/properties/${propertyId}/images`);
+    if (!response.ok) {
+      console.error('Failed to load images', response.status);
+      return;
+    }
+    const { images } = await response.json();
+    setImages(images ?? []);
   }, [propertyId]);
 
   useEffect(() => {
@@ -45,13 +44,11 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
     }
   }
 
-  const nextDisplayOrder = Math.max(-1, ...images.map((i) => i.display_order)) + 1;
-
   return (
     <main>
       <h1>Property photos</h1>
-      <ImageUploader propertyId={propertyId} nextDisplayOrder={nextDisplayOrder} onUploaded={loadImages} />
-      <ImageList images={images} onChanged={loadImages} />
+      <ImageUploader propertyId={propertyId} onUploaded={loadImages} />
+      <ImageList propertyId={propertyId} images={images} onChanged={loadImages} />
       <RuntimeEstimate numPhotos={images.length} />
       <label>
         <input type="checkbox" checked={landscape} onChange={(e) => setLandscape(e.target.checked)} />

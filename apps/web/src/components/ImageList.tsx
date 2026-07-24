@@ -2,33 +2,37 @@
 
 import { useState } from 'react';
 import type { PropertyImage } from '@realestatevids/shared';
-import { getSupabaseBrowserClient } from '@/lib/supabaseBrowser';
 
 const ROOM_PRESETS = ['bedroom', 'kitchen', 'living room', 'bathroom', 'exterior', 'balcony', 'dining room'];
 
 export function ImageList({
+  propertyId,
   images,
   onChanged,
 }: {
+  propertyId: string;
   images: PropertyImage[];
   onChanged: () => void;
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
   async function updateRoomType(id: string, roomType: string) {
-    const supabase = getSupabaseBrowserClient();
-    const { error } = await supabase.from('property_images').update({ room_type: roomType }).eq('id', id);
-    if (error) {
-      console.error('Failed to update room type', error);
+    const response = await fetch(`/api/properties/${propertyId}/images/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ roomType }),
+    });
+    if (!response.ok) {
+      console.error('Failed to update room type', response.status);
     }
     onChanged();
   }
 
   async function deleteImage(id: string) {
-    const supabase = getSupabaseBrowserClient();
-    const { error } = await supabase.from('property_images').delete().eq('id', id);
-    if (error) {
-      console.error('Failed to delete image', error);
+    const response = await fetch(`/api/properties/${propertyId}/images/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      console.error('Failed to delete image', response.status);
     }
     onChanged();
   }
@@ -43,16 +47,12 @@ export function ImageList({
     const [moved] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, moved);
 
-    const supabase = getSupabaseBrowserClient();
-    const results = await Promise.all(
-      reordered.map((img, index) =>
-        supabase.from('property_images').update({ display_order: index }).eq('id', img.id)
-      )
-    );
-    for (const { error } of results) {
-      if (error) {
-        console.error('Failed to reorder image', error);
-      }
+    const response = await fetch(`/api/properties/${propertyId}/images/reorder`, {
+      method: 'PATCH',
+      body: JSON.stringify({ orderedIds: reordered.map((img) => img.id) }),
+    });
+    if (!response.ok) {
+      console.error('Failed to reorder images', response.status);
     }
     onChanged();
   }
