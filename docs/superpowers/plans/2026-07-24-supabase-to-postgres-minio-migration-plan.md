@@ -78,7 +78,7 @@ services:
       POSTGRES_PASSWORD: localdev
       POSTGRES_DB: realestatevids
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
   minio:
@@ -196,7 +196,7 @@ Delete `supabase/` directory entirely (schema now lives in
 Add root `.env.example` (or update existing ones) with:
 
 ```
-DATABASE_URL=postgresql://realestatevids:localdev@localhost:5432/realestatevids
+DATABASE_URL=postgresql://realestatevids:localdev@localhost:5433/realestatevids
 MINIO_ENDPOINT=http://localhost:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
