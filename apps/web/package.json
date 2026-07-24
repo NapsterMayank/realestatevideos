@@ -13,7 +13,6 @@
     "@aws-sdk/s3-request-presigner": "^3.658.1",
     "@realestatevids/db": "*",
     "@realestatevids/shared": "*",
-    "@supabase/supabase-js": "^2.45.4",
     "bullmq": "^5.13.2",
     "next": "16.2.11",
     "react": "19.2.4",
