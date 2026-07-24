@@ -1902,6 +1902,14 @@ git commit -m "feat(web): show per-variant render status with preview, download,
 
 ## Post-plan notes
 
+- **Supabase replaced with Postgres + Prisma + MinIO (2026-07-24):** Tasks 2 and 8-12
+  below describe Supabase (Postgres+Auth+Storage) as originally built and remain
+  accurate for what shipped at the time. That backend has since been migrated to
+  self-hosted Postgres (via Prisma) and MinIO (S3-compatible object storage), both
+  run through Docker Compose alongside Redis — no Supabase account or credentials are
+  needed anymore. See
+  `docs/superpowers/plans/2026-07-24-supabase-to-postgres-minio-migration-plan.md` for
+  the migration plan and `docs/local-setup.md` for the current local setup sequence.
 - **Windows native-dependency setup for `apps/worker`:** `editly`'s dependency chain
   (`gl`, and `fabric` → `canvas`/node-canvas) requires native compilation on Windows.
   Two toolchains needed, installed in this order:
