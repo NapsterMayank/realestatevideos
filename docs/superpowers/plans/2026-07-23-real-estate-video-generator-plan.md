@@ -1902,6 +1902,27 @@ git commit -m "feat(web): show per-variant render status with preview, download,
 
 ## Post-plan notes
 
+- **Windows native-dependency setup for `apps/worker`:** `editly`'s dependency chain
+  (`gl`, and `fabric` → `canvas`/node-canvas) requires native compilation on Windows.
+  Two toolchains needed, installed in this order:
+  1. MSVC C++ Build Tools (`winget install Microsoft.VisualStudio.2022.BuildTools
+     --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools"`)
+     — resolves `gl`'s node-gyp compile.
+  2. GTK/Cairo dev libraries for `node-canvas` — no Windows prebuilt binary exists for
+     current Node ABIs, and it falls back to source compile needing `cairo.h`, `pango`,
+     `glib`, `harfbuzz`, `libpng`, `freetype`. `node-canvas`'s `binding.gyp` hardcodes
+     `GTK_Root` to `C:/GTK` with specific legacy-named libs/DLLs (e.g. `libcairo-2.dll`,
+     `cairo.lib`). Built via `vcpkg install cairo:x64-windows pango:x64-windows
+     libjpeg-turbo:x64-windows giflib:x64-windows librsvg:x64-windows`, then assembled
+     `C:\GTK\{include,lib,bin}` from the vcpkg output: directory junctions for the
+     `cairo`/`pango-1.0`/`glib-2.0`/harfbuzz header dirs and `lib/glib-2.0/include`,
+     symlinks for top-level headers (`png.h`, `glib.h`, etc.), and renamed copies of the
+     15 DLLs `canvas`'s postbuild copy step expects by their old GTK-bundle names. A
+     `pkg-config.exe` (vcpkg's `pkgconf` + `libpkgconf-7.dll`) on `PATH` with
+     `PKG_CONFIG_PATH` pointing at vcpkg's `lib/pkgconfig` is also needed for the
+     `gyp` configure step. Once both are in place, `npm rebuild canvas` succeeds and the
+     worker starts cleanly. This is a one-time machine setup, not part of the repo —
+     Linux/Docker deploy targets get prebuilt `canvas` binaries and skip all of this.
 - Editly requires a working ffmpeg on the machine running `apps/worker` (its
   `ffmpeg-static` optional dependency usually covers this, but verify `npx editly --help`
   runs cleanly after `npm install` before relying on Task 8's manual smoke check).
