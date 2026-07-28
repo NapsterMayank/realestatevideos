@@ -6,7 +6,7 @@ function mapProperty(property: {
   id: string;
   name: string;
   contactPhone: string;
-  contactWebsite: string;
+  contactWebsite: string | null;
   agencyName: string | null;
   createdAt: Date;
 }): Property {
@@ -40,12 +40,13 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const contactPhone = typeof body.contact_phone === 'string' ? body.contact_phone.trim() : '';
-  const contactWebsite = typeof body.contact_website === 'string' ? body.contact_website.trim() : '';
+  const contactWebsite =
+    typeof body.contact_website === 'string' && body.contact_website.trim() ? body.contact_website.trim() : null;
   const agencyName = typeof body.agency_name === 'string' && body.agency_name.trim() ? body.agency_name.trim() : null;
 
-  if (!name || !contactPhone || !contactWebsite) {
+  if (!name || !contactPhone) {
     return NextResponse.json(
-      { error: 'name, contact_phone, and contact_website are required' },
+      { error: 'name and contact_phone are required' },
       { status: 400 }
     );
   }

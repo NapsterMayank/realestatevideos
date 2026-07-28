@@ -82,8 +82,7 @@ export default function Home() {
             className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
           />
           <input
-            required
-            placeholder="Contact website"
+            placeholder="Contact website (optional)"
             value={form.contact_website}
             onChange={(e) => setForm((f) => ({ ...f, contact_website: e.target.value }))}
             className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
@@ -119,7 +118,8 @@ export default function Home() {
               >
                 <span className="font-medium text-zinc-900 dark:text-zinc-50">{property.name}</span>
                 <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {property.contact_phone} · {property.contact_website}
+                  {property.contact_phone}
+                  {property.contact_website ? ` · ${property.contact_website}` : ''}
                 </span>
               </Link>
             </li>

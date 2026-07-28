@@ -80,7 +80,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       data: {
         propertyId,
         imageUrl: key,
-        roomType: 'bedroom',
+        roomType: 'other',
         displayOrder: nextDisplayOrder,
       },
     });

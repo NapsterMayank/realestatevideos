@@ -11,7 +11,7 @@ model Property {
   id             String   @id @default(uuid())
   name           String
   contactPhone   String   @map("contact_phone")
-  contactWebsite String   @map("contact_website")
+  contactWebsite String?  @map("contact_website")
   agencyName     String?  @map("agency_name")
   createdAt      DateTime @default(now()) @map("created_at")
 

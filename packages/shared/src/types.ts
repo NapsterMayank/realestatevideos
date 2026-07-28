@@ -4,7 +4,7 @@ export interface Property {
   id: string;
   name: string;
   contact_phone: string;
-  contact_website: string;
+  contact_website: string | null;
   agency_name: string | null;
   created_at: string;
 }

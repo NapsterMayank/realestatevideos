@@ -3,7 +3,17 @@
 import { useState } from 'react';
 import type { PropertyImage } from '@realestatevids/shared';
 
-const ROOM_PRESETS = ['bedroom', 'kitchen', 'living room', 'bathroom', 'exterior', 'balcony', 'dining room'];
+const ROOM_PRESETS = [
+  'exterior',
+  'living room',
+  'kitchen',
+  'dining room',
+  'bedroom',
+  'bathroom',
+  'balcony',
+  'top floor',
+  'other',
+];
 
 export function ImageList({
   propertyId,

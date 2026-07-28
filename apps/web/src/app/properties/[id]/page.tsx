@@ -69,7 +69,8 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
         </h1>
         {property ? (
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {property.contact_phone} · {property.contact_website}
+            {property.contact_phone}
+            {property.contact_website ? ` · ${property.contact_website}` : ''}
             {property.agency_name ? ` · ${property.agency_name}` : ''}
           </p>
         ) : null}

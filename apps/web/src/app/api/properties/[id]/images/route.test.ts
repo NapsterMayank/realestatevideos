@@ -93,7 +93,7 @@ describe('POST /api/properties/:id/images', () => {
     );
   });
 
-  it('defaults displayOrder to 0 and roomType to bedroom when no images exist', async () => {
+  it('defaults displayOrder to 0 and roomType to other when no images exist', async () => {
     mockFindMany.mockResolvedValue([]);
     mockCreate.mockImplementation(async ({ data }: { data: { propertyId: string; imageUrl: string; roomType: string; displayOrder: number } }) => ({
       id: 'img-new',
@@ -114,7 +114,7 @@ describe('POST /api/properties/:id/images', () => {
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ displayOrder: 0, roomType: 'bedroom', propertyId: 'p1' }),
+        data: expect.objectContaining({ displayOrder: 0, roomType: 'other', propertyId: 'p1' }),
       })
     );
   });

@@ -6,7 +6,7 @@ function mapProperty(property: {
   id: string;
   name: string;
   contactPhone: string;
-  contactWebsite: string;
+  contactWebsite: string | null;
   agencyName: string | null;
   createdAt: Date;
 }): Property {
